@@ -162,7 +162,17 @@ class AIAgent:
                 beta = min(beta, v)
                 if alpha >= beta: break
             return v
-
+      
+    
+    def is_consistent(self, var, value, assignment):
+     """
+     Checks if a value for a variable is consistent with current assignments
+      based on the constraints defined in Phase 3.
+     """
+     for (v, val) in assignment.items():
+        if not self.check_constraint(var, value, v, val):
+            return False
+     return True
 # --- Demonstration Block ---
 if __name__ == "__main__":
     agent = AIAgent(graph)
