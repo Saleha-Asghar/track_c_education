@@ -8,7 +8,7 @@ from phase1 import df, graph  # Ensure these are imported correctly
 class AIAgent:
     def __init__(self, graph):
         self.graph = graph
-        self.nodes_evaluated = 0  # FIX: Initialize this here
+        self.nodes_evaluated = 0
 
     def perceive(self, state):
         return list(self.graph.get(state, []))
@@ -22,7 +22,6 @@ class AIAgent:
     def get_cost(self, state1, state2):
         return 1
     
-    # FIX: Added 'self' so the agent can call this function
     def get_value(self, node):
         """Objective function: Returns the numeric grade or 0 for non-grade nodes."""
         try:
@@ -40,12 +39,13 @@ class AIAgent:
         while queue:
             current_node, path = queue.popleft()
             if self.goal_test(current_node, goal):
-                return path, (time.time() - start_time) * 1000
+                # FIX: Added len(visited) here!
+                return path, (time.time() - start_time) * 1000, len(visited)
             for neighbor in self.perceive(current_node):
                 if neighbor not in visited:
                     visited.add(neighbor)
                     queue.append((neighbor, path + [neighbor]))
-        return None, 0
+        return None, 0, 0
 
     def dfs(self, start, goal):
         start_time = time.time()
@@ -54,13 +54,14 @@ class AIAgent:
         while stack:
             current_node, path = stack.pop()
             if self.goal_test(current_node, goal):
-                return path, (time.time() - start_time) * 1000
+                # FIX: Added len(visited) here!
+                return path, (time.time() - start_time) * 1000, len(visited)
             if current_node not in visited:
                 visited.add(current_node)
                 for neighbor in self.perceive(current_node):
                     if neighbor not in visited:
                         stack.append((neighbor, path + [neighbor]))
-        return None, 0
+        return None, 0, 0
 
     def heuristic(self, current, goal):
         return abs(self.get_value(goal) - self.get_value(current))
@@ -72,7 +73,7 @@ class AIAgent:
         while pq:
             cost, current_node, path = heapq.heappop(pq)
             if self.goal_test(current_node, goal):
-                return path, (time.time() - start_time) * 1000, cost
+                return path, (time.time() - start_time) * 1000, len(visited)
             if current_node not in visited or cost < visited[current_node]:
                 visited[current_node] = cost
                 for neighbor in self.perceive(current_node):
@@ -87,7 +88,7 @@ class AIAgent:
         while pq:
             f_score, g_score, current_node, path = heapq.heappop(pq)
             if self.goal_test(current_node, goal):
-                return path, (time.time() - start_time) * 1000, g_score
+                return path, (time.time() - start_time) * 1000, len(visited)
             if current_node not in visited or g_score < visited[current_node]:
                 visited[current_node] = g_score
                 for neighbor in self.perceive(current_node):
@@ -122,7 +123,6 @@ class AIAgent:
         return current
 
     def local_beam_search(self, k):
-        """FIX: Added missing Beam Search method"""
         nodes = random.sample(list(self.graph.keys()), k)
         for _ in range(5):
             all_neighbors = []
@@ -162,17 +162,7 @@ class AIAgent:
                 beta = min(beta, v)
                 if alpha >= beta: break
             return v
-      
-    
-    def is_consistent(self, var, value, assignment):
-     """
-     Checks if a value for a variable is consistent with current assignments
-      based on the constraints defined in Phase 3.
-     """
-     for (v, val) in assignment.items():
-        if not self.check_constraint(var, value, v, val):
-            return False
-     return True
+
 # --- Demonstration Block ---
 if __name__ == "__main__":
     agent = AIAgent(graph)
@@ -190,8 +180,8 @@ if __name__ == "__main__":
     print(f"1. Testing Pathfinding (Target: {goal_node})")
     for name, method in [("BFS", agent.bfs), ("DFS", agent.dfs), ("UCS", agent.ucs), ("A*", agent.a_star)]:
         result = method(start_node, goal_node)
-        path, t = result[0], result[1]
-        print(f"   {name:<5} | Time: {t:.3f}ms | Path Len: {len(path) if path else 'N/A'}")
+        path, t, explored = result[0], result[1], result[2]
+        print(f"   {name:<5} | Time: {t:.3f}ms | Path Len: {len(path) if path else 'N/A'} | Nodes Explored: {explored}")
 
     # [STEP 4] Local Search
     print(f"\n2. Testing Local Search")

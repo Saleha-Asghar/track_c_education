@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import random
 from phase1 import df  # Use your existing dataframe
+import pickle
 
 # --- Step 47: Handle Missing Values ---
 # Even though Phase 1 showed 0 missing, the manual requires this logic for robustness
@@ -415,3 +416,9 @@ if __name__ == "__main__":
     print(f"MLP Test Accuracy: {np.mean(mlp_test_preds == y_test_bin.reshape(-1,1)):.2%}")
 
     evaluate_models()
+
+
+    with open('student_model.pkl', 'wb') as f:
+        pickle.dump(model,f)
+
+    
